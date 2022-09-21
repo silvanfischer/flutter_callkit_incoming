@@ -129,11 +129,7 @@ class CallkitNotificationManager(private val context: Context) {
         } catch (error: Exception) {
         }
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
-        notificationBuilder.priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NotificationManager.IMPORTANCE_HIGH
-        } else {
-            Notification.PRIORITY_HIGH
-        }
+        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         val isCustomNotification = data.getBoolean(EXTRA_CALLKIT_IS_CUSTOM_NOTIFICATION, false)
         if (isCustomNotification) {
             notificationViews =
@@ -303,11 +299,7 @@ class CallkitNotificationManager(private val context: Context) {
                 notificationBuilder.addAction(callbackAction)
             }
         }
-        notificationBuilder.priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NotificationManager.IMPORTANCE_HIGH
-        } else {
-            Notification.PRIORITY_HIGH
-        }
+        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         notificationBuilder.setSound(missedCallSound)
         notificationBuilder.setContentIntent(getAppPendingIntent(notificationId, data))
         val actionColor = data.getString(EXTRA_CALLKIT_ACTION_COLOR, "#4CAF50")
@@ -318,12 +310,6 @@ class CallkitNotificationManager(private val context: Context) {
 
         val notification = notificationBuilder.build()
         getNotificationManager().notify(notificationId, notification)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().notify(notificationId, notification)
-            } catch (error: Exception) {
-            }
-        }, 1000)
     }
 
 
@@ -336,12 +322,6 @@ class CallkitNotificationManager(private val context: Context) {
     fun clearMissCallNotification(data: Bundle) {
         notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
         getNotificationManager().cancel(notificationId)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().cancel(notificationId)
-            } catch (error: Exception) {
-            }
-        }, 1000)
     }
 
     fun incomingChannelEnabled(): Boolean {
