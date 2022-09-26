@@ -12,7 +12,6 @@
         <activity
             android:name="com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
             android:excludeFromRecents="true"
-            android:screenOrientation="portrait"
             android:showOnLockScreen="true"
             android:launchMode="singleTask"
             android:exported="true"

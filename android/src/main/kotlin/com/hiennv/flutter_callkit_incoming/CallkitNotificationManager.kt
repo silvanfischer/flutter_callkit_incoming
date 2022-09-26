@@ -99,9 +99,8 @@ class CallkitNotificationManager(private val context: Context) {
         notificationBuilder.setAutoCancel(false)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
         notificationBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL)
-        }
+        notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL)
+        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         notificationBuilder.setOngoing(true)
         notificationBuilder.setWhen(0)
@@ -128,8 +127,6 @@ class CallkitNotificationManager(private val context: Context) {
             notificationBuilder.color = Color.parseColor(actionColor)
         } catch (error: Exception) {
         }
-        notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
-        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         val isCustomNotification = data.getBoolean(EXTRA_CALLKIT_IS_CUSTOM_NOTIFICATION, false)
         if (isCustomNotification) {
             notificationViews =
@@ -236,12 +233,11 @@ class CallkitNotificationManager(private val context: Context) {
         }
         notificationBuilder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_MISSED)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_MISSED)
-        notificationBuilder.setAutoCancel(true)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                notificationBuilder.setCategory(Notification.CATEGORY_MISSED_CALL)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            notificationBuilder.setCategory(Notification.CATEGORY_MISSED_CALL)
         }
+        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
+
         val textMissedCall = data.getString(EXTRA_CALLKIT_TEXT_MISSED_CALL, "")
         notificationBuilder.setSubText(if (TextUtils.isEmpty(textMissedCall)) context.getString(R.string.text_missed_call) else textMissedCall)
         notificationBuilder.setSmallIcon(smallIcon)
@@ -299,7 +295,6 @@ class CallkitNotificationManager(private val context: Context) {
                 notificationBuilder.addAction(callbackAction)
             }
         }
-        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         notificationBuilder.setSound(missedCallSound)
         notificationBuilder.setContentIntent(getAppPendingIntent(notificationId, data))
         val actionColor = data.getString(EXTRA_CALLKIT_ACTION_COLOR, "#4CAF50")
@@ -322,6 +317,12 @@ class CallkitNotificationManager(private val context: Context) {
     fun clearMissCallNotification(data: Bundle) {
         notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
         getNotificationManager().cancel(notificationId)
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                getNotificationManager().cancel(notificationId)
+            } catch (error: Exception) {
+            }
+        }, 1000)
     }
 
     fun incomingChannelEnabled(): Boolean {
@@ -345,8 +346,8 @@ class CallkitNotificationManager(private val context: Context) {
                 channelCall.setSound(null, null)
             } else {
                 channelCall = NotificationChannel(
-                        incomingCallChannelName,
                         NOTIFICATION_CHANNEL_ID_INCOMING,
+                        incomingCallChannelName,
                         NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = ""
