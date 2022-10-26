@@ -22,6 +22,16 @@ class TransparentActivity : Activity() {
             return intent
         }
 
+        fun getIntentDecline(context: Context, data: Bundle?): Intent {
+            val intent = Intent(context, TransparentActivity::class.java)
+            intent.putExtra("data", data)
+            intent.putExtra("type", "DECLINE")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+            intent.data = Uri.parse(UUID.randomUUID().toString())
+            return intent
+        }
+
         fun getIntentCallback(context: Context, data: Bundle?): Intent {
             val intent = Intent(context, TransparentActivity::class.java)
             intent.putExtra("data", data)
@@ -31,9 +41,7 @@ class TransparentActivity : Activity() {
             intent.data = Uri.parse(UUID.randomUUID().toString())
             return intent
         }
-
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -45,22 +53,28 @@ class TransparentActivity : Activity() {
         when (intent.getStringExtra("type")) {
             "ACCEPT" -> {
                 val data = intent.getBundleExtra("data")
-                val acceptIntent = CallkitIncomingBroadcastReceiver.getIntentAccept(this@TransparentActivity, data)
+                val acceptIntent =
+                    CallkitIncomingBroadcastReceiver.getIntentAccept(this@TransparentActivity, data)
                 sendBroadcast(acceptIntent)
-                if(isTaskRoot) {
-                    val intent = packageManager.getLaunchIntentForPackage(packageName)?.cloneFilter()
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    startActivity(intent)
-                }
+            }
+            "DECLINE" -> {
+                val data = intent.getBundleExtra("data")
+                val declineIntent =
+                    CallkitIncomingBroadcastReceiver.getIntentDecline(this@TransparentActivity, data)
+                sendBroadcast(declineIntent)
             }
             "CALLBACK" -> {
                 val data = intent.getBundleExtra("data")
-                val acceptIntent = CallkitIncomingBroadcastReceiver.getIntentCallback(this@TransparentActivity, data)
+                val acceptIntent = CallkitIncomingBroadcastReceiver.getIntentCallback(
+                    this@TransparentActivity,
+                    data
+                )
                 sendBroadcast(acceptIntent)
             }
             else -> { // Note the block
                 val data = intent.getBundleExtra("data")
-                val acceptIntent = CallkitIncomingBroadcastReceiver.getIntentAccept(this@TransparentActivity, data)
+                val acceptIntent =
+                    CallkitIncomingBroadcastReceiver.getIntentAccept(this@TransparentActivity, data)
                 sendBroadcast(acceptIntent)
             }
         }

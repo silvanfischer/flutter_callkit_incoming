@@ -47,8 +47,10 @@ class CallkitNotificationManager(private val context: Context) {
 
         const val EXTRA_TIME_START_CALL = "EXTRA_TIME_START_CALL"
 
-        private const val NOTIFICATION_CHANNEL_ID_INCOMING = "callkit_incoming_channel_id"
-        private const val NOTIFICATION_CHANNEL_ID_MISSED = "callkit_missed_channel_id"
+        private const val NOTIFICATION_CHANNEL_ID_INCOMING = "busti_incoming_channel_id"
+        private const val NOTIFICATION_CHANNEL_ID_MISSED = "busti_missed_channel_id"
+        private const val NOTIFICATION_ID_DEFAULT_INCOMING = "busti_incoming"
+        private const val NOTIFICATION_ID_DEFAULT_MISSED = "busti_missed"
     }
 
     private lateinit var notificationBuilder: NotificationCompat.Builder
@@ -89,7 +91,7 @@ class CallkitNotificationManager(private val context: Context) {
     fun showIncomingNotification(data: Bundle) {
         data.putLong(EXTRA_TIME_START_CALL, System.currentTimeMillis())
 
-        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_INCOMING).hashCode()
         createNotificationChanel(
             data.getString(EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME, "Incoming Call"),
             data.getString(EXTRA_CALLKIT_MISSED_CALL_NOTIFICATION_CHANNEL_NAME, "Missed Call"),
@@ -216,7 +218,7 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     fun showMissCallNotification(data: Bundle) {
-        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
+        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_MISSED).hashCode()
         createNotificationChanel(
             data.getString(EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME, "Incoming Call"),
             data.getString(EXTRA_CALLKIT_MISSED_CALL_NOTIFICATION_CHANNEL_NAME, "Missed Call"),
@@ -310,19 +312,13 @@ class CallkitNotificationManager(private val context: Context) {
 
     fun clearIncomingNotification(data: Bundle) {
         context.sendBroadcast(CallkitIncomingActivity.getIntentEnded())
-        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_INCOMING).hashCode()
         getNotificationManager().cancel(notificationId)
     }
 
     fun clearMissCallNotification(data: Bundle) {
-        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
+        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_MISSED).hashCode()
         getNotificationManager().cancel(notificationId)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().cancel(notificationId)
-            } catch (error: Exception) {
-            }
-        }, 1000)
     }
 
     fun incomingChannelEnabled(): Boolean {
@@ -404,13 +400,25 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     private fun getDeclinePendingIntent(id: Int, data: Bundle): PendingIntent {
-        val declineIntent = CallkitIncomingBroadcastReceiver.getIntentDecline(context, data)
-        return PendingIntent.getBroadcast(
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.cloneFilter()
+        intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (intent != null) {
+            val intentTransparent = TransparentActivity.getIntentDecline(context, data)
+            return PendingIntent.getActivities(
+                context,
+                id,
+                arrayOf(intent, intentTransparent),
+                getFlagPendingIntent()
+            )
+        } else {
+            val declineIntent = CallkitIncomingBroadcastReceiver.getIntentDecline(context, data)
+            return PendingIntent.getBroadcast(
                 context,
                 id,
                 declineIntent,
                 getFlagPendingIntent()
-        )
+            )
+        }
     }
 
     private fun getTimeOutPendingIntent(id: Int, data: Bundle): PendingIntent {

@@ -42,7 +42,7 @@ class CallkitIncomingActivity : Activity() {
     companion object {
 
         const val ACTION_ENDED_CALL_INCOMING =
-            "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
+            "io.fibe.busti.ACTION_ENDED_CALL_INCOMING"
 
         fun getIntent(data: Bundle) = Intent(ACTION_CALL_INCOMING).apply {
             action = ACTION_CALL_INCOMING

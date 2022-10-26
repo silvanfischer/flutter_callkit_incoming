@@ -221,19 +221,26 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
     class EventCallbackHandler : EventChannel.StreamHandler {
 
+        private var lastEvent: Pair<String, Map<String, Any>>? = null
+
         private var eventSink: EventChannel.EventSink? = null
 
         override fun onListen(arguments: Any?, sink: EventChannel.EventSink) {
             eventSink = sink
+            lastEvent?.let { sendEvent(it.first, it.second) }
         }
 
         fun send(event: String, body: Map<String, Any>) {
+            lastEvent = Pair(event, body)
             val data = mapOf(
                 "event" to event,
                 "body" to body
             )
             Handler(Looper.getMainLooper()).post {
-                eventSink?.success(data)
+                eventSink?.let {
+                    it.success(data)
+                    lastEvent = null
+                }
             }
         }
 

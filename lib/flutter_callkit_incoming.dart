@@ -92,32 +92,32 @@ class FlutterCallkitIncoming {
 
 class CallEvent {
   static const String ACTION_DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP =
-      "com.hiennv.flutter_callkit_incoming.DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP";
+      "io.fibe.busti.DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP";
 
   static const String ACTION_CALL_INCOMING =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_INCOMING";
+      "io.fibe.busti.ACTION_CALL_INCOMING";
   static const String ACTION_CALL_START =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_START";
+      "io.fibe.busti.ACTION_CALL_START";
   static const String ACTION_CALL_ACCEPT =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_ACCEPT";
+      "io.fibe.busti.ACTION_CALL_ACCEPT";
   static const String ACTION_CALL_DECLINE =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_DECLINE";
+      "io.fibe.busti.ACTION_CALL_DECLINE";
   static const String ACTION_CALL_ENDED =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_ENDED";
+      "io.fibe.busti.ACTION_CALL_ENDED";
   static const String ACTION_CALL_TIMEOUT =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TIMEOUT";
+      "io.fibe.busti.ACTION_CALL_TIMEOUT";
   static const String ACTION_CALL_CALLBACK =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_CALLBACK";
+      "io.fibe.busti.ACTION_CALL_CALLBACK";
   static const String ACTION_CALL_TOGGLE_HOLD =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_HOLD";
+      "io.fibe.busti.ACTION_CALL_TOGGLE_HOLD";
   static const String ACTION_CALL_TOGGLE_MUTE =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_MUTE";
+      "io.fibe.busti.ACTION_CALL_TOGGLE_MUTE";
   static const String ACTION_CALL_TOGGLE_DMTF =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_DMTF";
+      "io.fibe.busti.ACTION_CALL_TOGGLE_DMTF";
   static const String ACTION_CALL_TOGGLE_GROUP =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_GROUP";
+      "io.fibe.busti.ACTION_CALL_TOGGLE_GROUP";
   static const String ACTION_CALL_TOGGLE_AUDIO_SESSION =
-      "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_AUDIO_SESSION";
+      "io.fibe.busti.ACTION_CALL_TOGGLE_AUDIO_SESSION";
 
   String name;
   dynamic body;
