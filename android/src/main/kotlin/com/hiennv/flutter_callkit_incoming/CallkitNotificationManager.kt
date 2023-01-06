@@ -90,7 +90,7 @@ class CallkitNotificationManager(private val context: Context) {
     fun showIncomingNotification(data: Bundle) {
         data.putLong(EXTRA_TIME_START_CALL, System.currentTimeMillis())
 
-        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_INCOMING).hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
         createNotificationChanel(
             data.getString(EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME, "Incoming Call"),
             data.getString(EXTRA_CALLKIT_MISSED_CALL_NOTIFICATION_CHANNEL_NAME, "Missed Call"),
@@ -100,8 +100,10 @@ class CallkitNotificationManager(private val context: Context) {
         notificationBuilder.setAutoCancel(false)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
         notificationBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE)
-        notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL)
-        notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL)
+            notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
+        }
         notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         notificationBuilder.setOngoing(true)
         notificationBuilder.setWhen(0)
@@ -221,7 +223,7 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     fun showMissCallNotification(data: Bundle) {
-        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_MISSED).hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
         createNotificationChanel(
             data.getString(EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME, "Incoming Call"),
             data.getString(EXTRA_CALLKIT_MISSED_CALL_NOTIFICATION_CHANNEL_NAME, "Missed Call"),
@@ -238,8 +240,10 @@ class CallkitNotificationManager(private val context: Context) {
         }
         notificationBuilder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_MISSED)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_MISSED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            notificationBuilder.setCategory(Notification.CATEGORY_MISSED_CALL)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                notificationBuilder.setCategory(Notification.CATEGORY_MISSED_CALL)
+            }
         }
         notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
 
@@ -320,7 +324,7 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     fun clearMissCallNotification(data: Bundle) {
-        notificationId = data.getString(EXTRA_CALLKIT_ID, NOTIFICATION_ID_DEFAULT_MISSED).hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
         getNotificationManager().cancel(notificationId)
     }
 
