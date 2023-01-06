@@ -42,7 +42,7 @@ class CallkitIncomingActivity : Activity() {
     companion object {
 
         const val ACTION_ENDED_CALL_INCOMING =
-            "io.fibe.busti.ACTION_ENDED_CALL_INCOMING"
+            "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
 
         fun getIntent(context: Context, data: Bundle) = Intent(ACTION_CALL_INCOMING).apply {
             action = "${context.packageName}.${ACTION_CALL_INCOMING}"
@@ -100,7 +100,7 @@ class CallkitIncomingActivity : Activity() {
         incomingData(intent)
         registerReceiver(
             endedCallkitIncomingBroadcastReceiver,
-            IntentFilter(ACTION_ENDED_CALL_INCOMING)
+            IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}")
         )
     }
 
