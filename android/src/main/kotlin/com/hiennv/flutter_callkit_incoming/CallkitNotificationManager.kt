@@ -97,7 +97,7 @@ class CallkitNotificationManager(private val context: Context) {
         )
 
         notificationBuilder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_INCOMING)
-        notificationBuilder.setAutoCancel(false)
+        notificationBuilder.setAutoCancel(true)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
         notificationBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -246,6 +246,7 @@ class CallkitNotificationManager(private val context: Context) {
             }
         }
         notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
+        notificationBuilder.setAutoCancel(true)
 
         val textMissedCall = data.getString(EXTRA_CALLKIT_TEXT_MISSED_CALL, "")
         notificationBuilder.setSubText(if (TextUtils.isEmpty(textMissedCall)) context.getString(R.string.text_missed_call) else textMissedCall)
