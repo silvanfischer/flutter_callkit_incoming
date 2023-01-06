@@ -141,9 +141,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
             }
             "${context.packageName}.${ACTION_CALL_DECLINE}" -> {
                 try {
-                    callkitNotificationManager.clearIncomingNotification(data)
                     sendEventFlutter(ACTION_CALL_DECLINE, data)
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
+                    callkitNotificationManager.clearIncomingNotification(data)
                     removeCall(context, Data.fromBundle(data))
                 } catch (error: Exception) {
                     error.printStackTrace()
@@ -151,9 +151,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
             }
             "${context.packageName}.${ACTION_CALL_ENDED}" -> {
                 try {
-                    callkitNotificationManager.clearIncomingNotification(data)
                     sendEventFlutter(ACTION_CALL_ENDED, data)
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
+                    callkitNotificationManager.clearIncomingNotification(data)
                     removeCall(context, Data.fromBundle(data))
                 } catch (error: Exception) {
                     error.printStackTrace()
