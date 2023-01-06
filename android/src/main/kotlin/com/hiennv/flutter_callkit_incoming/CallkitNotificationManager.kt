@@ -324,7 +324,7 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     fun clearMissCallNotification(data: Bundle) {
-        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
+        notificationId = data.getString(EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
         getNotificationManager().cancel(notificationId)
     }
 
