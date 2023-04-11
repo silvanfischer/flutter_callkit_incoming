@@ -264,8 +264,8 @@ class CallkitIncomingActivity : Activity() {
                 TransparentActivity.getIntentAccept(this@CallkitIncomingActivity, data)
             startActivities(arrayOf(intent, intentTransparent))
         } else {
-            val acceptIntent =
-                CallkitIncomingBroadcastReceiver.getIntentAccept(this@CallkitIncomingActivity, data)
+            val acceptIntent = CallkitIncomingBroadcastReceiver.getIntentAccept(this@CallkitIncomingActivity, data)
+            acceptIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             sendBroadcast(acceptIntent)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -284,6 +284,11 @@ class CallkitIncomingActivity : Activity() {
         val intent =
             CallkitIncomingBroadcastReceiver.getIntentDecline(this@CallkitIncomingActivity, data)
         sendBroadcast(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask()
+        } else {
+            finish()
+        }
     }
 
     private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {

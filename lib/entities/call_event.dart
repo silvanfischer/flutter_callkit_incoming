@@ -1,3 +1,4 @@
+/// Object CallEvent.
 class CallEvent {
   Event event;
   dynamic body;
@@ -21,9 +22,10 @@ enum Event {
   ACTION_CALL_TOGGLE_DMTF,
   ACTION_CALL_TOGGLE_GROUP,
   ACTION_CALL_TOGGLE_AUDIO_SESSION,
+  ACTION_CALL_CUSTOM,
 }
 
-// using extension for backward compatibility Dart SDK 2.17.0 and lower
+/// Using extension for backward compatibility Dart SDK 2.17.0 and lower
 extension EventX on Event {
   String get name {
     switch (this) {
@@ -53,6 +55,8 @@ extension EventX on Event {
         return 'com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_GROUP';
       case Event.ACTION_CALL_TOGGLE_AUDIO_SESSION:
         return 'com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_AUDIO_SESSION';
+      case Event.ACTION_CALL_CUSTOM:
+        return 'com.hiennv.flutter_callkit_incoming.ACTION_CALL_CUSTOM';
     }
   }
 }
