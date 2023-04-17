@@ -56,7 +56,14 @@ class CallkitSoundPlayerService : Service() {
             }
             else -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, 1000L, 1000L), 0))
+                    vibrator?.vibrate(longArrayOf(0L, 1000L, 1000L), 0)
+                    // This will not stop onDestroy if the app was killed:
+                    // vibrator?.vibrate(
+                    //     VibrationEffect.createWaveform(
+                    //         longArrayOf(0L, 1000L, 1000L),
+                    //         0
+                    //     )
+                    // )
                 } else {
                     vibrator?.vibrate(longArrayOf(0L, 1000L, 1000L), 0)
                 }
