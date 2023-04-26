@@ -13,13 +13,16 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.TextUtils
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_ACTION_COLOR
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_AVATAR
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_DURATION
@@ -35,12 +38,6 @@ import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Comp
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TEXT_DECLINE
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TEXT_MISSED_CALL
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TYPE
-import com.hiennv.flutter_callkit_incoming.widgets.CircleTransform
-import com.squareup.picasso.OkHttp3Downloader
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
-import okhttp3.OkHttpClient
-
 
 class CallkitNotificationManager(private val context: Context) {
 
@@ -57,35 +54,25 @@ class CallkitNotificationManager(private val context: Context) {
     private var notificationSmallViews: RemoteViews? = null
     private var notificationId: Int = 9696
 
-    private var targetLoadAvatarDefault = object : Target {
-        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+
+    private val targetLoadAvatarDefault = object : CustomTarget<Bitmap>(){
+        override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
             notificationBuilder.setLargeIcon(bitmap)
             getNotificationManager().notify(notificationId, notificationBuilder.build())
         }
-
-        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-        }
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-        }
+        override fun onLoadCleared(placeholder: Drawable?) = Unit
     }
 
-    private var targetLoadAvatarCustomize = object : Target {
-        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+    private val targetLoadAvatarCustomize = object : CustomTarget<Bitmap>(){
+        override fun onResourceReady(bitmap: Bitmap, transition: Transition<in Bitmap>?) {
             notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
             notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
             notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
             notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
             getNotificationManager().notify(notificationId, notificationBuilder.build())
         }
-
-        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-        }
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-        }
+        override fun onLoadCleared(placeholder: Drawable?) = Unit
     }
-
 
     fun showIncomingNotification(data: Bundle) {
         data.putLong(EXTRA_TIME_START_CALL, System.currentTimeMillis())
@@ -158,8 +145,7 @@ class CallkitNotificationManager(private val context: Context) {
             if (avatarUrl != null && avatarUrl.isNotEmpty()) {
                 val headers =
                         data.getSerializable(CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-                getPicassoInstance(context, headers).load(avatarUrl)
-                        .into(targetLoadAvatarDefault)
+                Glide.with(context).asBitmap().load(getGlideUrl(avatarUrl, headers)).into(targetLoadAvatarDefault)
             }
             notificationBuilder.setContentTitle(data.getString(EXTRA_CALLKIT_NAME_CALLER, ""))
             notificationBuilder.setContentText(data.getString(EXTRA_CALLKIT_HANDLE, ""))
@@ -214,9 +200,7 @@ class CallkitNotificationManager(private val context: Context) {
         if (avatarUrl != null && avatarUrl.isNotEmpty()) {
             val headers =
                     data.getSerializable(CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(context, headers).load(avatarUrl)
-                    .transform(CircleTransform())
-                    .into(targetLoadAvatarCustomize)
+            Glide.with(context).asBitmap().load(getGlideUrl(avatarUrl, headers)).circleCrop().into(targetLoadAvatarCustomize)
         }
     }
 
@@ -271,8 +255,7 @@ class CallkitNotificationManager(private val context: Context) {
                 val headers =
                         data.getSerializable(CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
-                getPicassoInstance(context, headers).load(avatarUrl)
-                        .transform(CircleTransform()).into(targetLoadAvatarCustomize)
+                Glide.with(context).asBitmap().load(getGlideUrl(avatarUrl, headers)).circleCrop().into(targetLoadAvatarCustomize)
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
             notificationBuilder.setCustomContentView(notificationViews)
@@ -285,8 +268,7 @@ class CallkitNotificationManager(private val context: Context) {
                 val headers =
                         data.getSerializable(CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
-                getPicassoInstance(context, headers).load(avatarUrl)
-                        .into(targetLoadAvatarDefault)
+                Glide.with(context).asBitmap().load(getGlideUrl(avatarUrl, headers)).into(targetLoadAvatarDefault)
             }
             val isShowCallback = data.getBoolean(CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_IS_SHOW_CALLBACK, true)
             if (isShowCallback) {
@@ -478,20 +460,14 @@ class CallkitNotificationManager(private val context: Context) {
         return NotificationManagerCompat.from(context)
     }
 
-
-    private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {
-        val client = OkHttpClient.Builder()
-                .addNetworkInterceptor { chain ->
-                    val newRequestBuilder: okhttp3.Request.Builder = chain.request().newBuilder()
-                    for ((key, value) in headers) {
-                        newRequestBuilder.addHeader(key, value.toString())
-                    }
-                    chain.proceed(newRequestBuilder.build())
+    private fun getGlideUrl(url: String, headers: HashMap<String, Any?>): GlideUrl {
+        return GlideUrl(
+            url, LazyHeaders.Builder().apply {
+                for ((key, value) in headers) {
+                    addHeader(key, value.toString())
                 }
-                .build()
-        return Picasso.Builder(context)
-                .downloader(OkHttp3Downloader(client))
-                .build()
+            }.build()
+        )
     }
 
 

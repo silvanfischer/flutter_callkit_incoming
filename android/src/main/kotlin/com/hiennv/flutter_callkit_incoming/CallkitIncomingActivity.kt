@@ -19,6 +19,9 @@ import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.ACTION_CALL_INCOMING
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_AVATAR
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_BACKGROUND_COLOR
@@ -31,10 +34,7 @@ import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Comp
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TEXT_ACCEPT
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TEXT_DECLINE
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver.Companion.EXTRA_CALLKIT_TYPE
-import com.squareup.picasso.OkHttp3Downloader
-import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
-import okhttp3.OkHttpClient
 import kotlin.math.abs
 
 class CallkitIncomingActivity : Activity() {
@@ -158,10 +158,8 @@ class CallkitIncomingActivity : Activity() {
         if (avatarUrl != null && avatarUrl.isNotEmpty()) {
             ivAvatar.visibility = View.VISIBLE
             val headers = data.getSerializable(EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(avatarUrl)
-                .placeholder(R.drawable.ic_default_avatar)
-                .error(R.drawable.ic_default_avatar)
+            Glide.with(this).load(getGlideUrl(avatarUrl, headers))
+                .placeholder(R.drawable.ic_default_avatar).error(R.drawable.ic_default_avatar)
                 .into(ivAvatar)
         }
 
@@ -197,10 +195,8 @@ class CallkitIncomingActivity : Activity() {
                     String.format("file:///android_asset/flutter_assets/%s", backgroundUrl)
             }
             val headers = data?.getSerializable(EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(backgroundUrl)
-                .placeholder(R.drawable.transparent)
-                .error(R.drawable.transparent)
+            Glide.with(this).load(getGlideUrl(backgroundUrl, headers))
+                .placeholder(R.drawable.transparent).error(R.drawable.transparent)
                 .into(ivBackground)
         }
     }
@@ -291,19 +287,14 @@ class CallkitIncomingActivity : Activity() {
         }
     }
 
-    private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {
-        val client = OkHttpClient.Builder()
-            .addNetworkInterceptor { chain ->
-                val newRequestBuilder: okhttp3.Request.Builder = chain.request().newBuilder()
+    private fun getGlideUrl(url: String, headers: HashMap<String, Any?>): GlideUrl {
+        return GlideUrl(
+            url, LazyHeaders.Builder().apply {
                 for ((key, value) in headers) {
-                    newRequestBuilder.addHeader(key, value.toString())
+                    addHeader(key, value.toString())
                 }
-                chain.proceed(newRequestBuilder.build())
-            }
-            .build()
-        return Picasso.Builder(context)
-            .downloader(OkHttp3Downloader(client))
-            .build()
+            }.build()
+        )
     }
 
     override fun onDestroy() {
