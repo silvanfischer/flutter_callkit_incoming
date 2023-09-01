@@ -112,7 +112,7 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> makeFakeCallInComing() async {
+  Future makeFakeCallInComing() async {
     await Future.delayed(const Duration(seconds: 10), () async {
       _currentUuid = _uuid.v4();
 
@@ -163,12 +163,12 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> endCurrentCall() async {
+  Future endCurrentCall() async {
     initCurrentCall();
     await FlutterCallkitIncoming.endCall(_currentUuid!);
   }
 
-  Future<void> startOutGoingCall() async {
+  Future startOutGoingCall() async {
     _currentUuid = _uuid.v4();
     final params = CallKitParams(
       id: _currentUuid,
@@ -181,22 +181,22 @@ class HomePageState extends State<HomePage> {
     await FlutterCallkitIncoming.startCall(params);
   }
 
-  Future<void> activeCalls() async {
+  Future activeCalls() async {
     var calls = await FlutterCallkitIncoming.activeCalls();
     print(calls);
   }
 
-  Future<void> endAllCalls() async {
+  Future endAllCalls() async {
     await FlutterCallkitIncoming.endAllCalls();
   }
 
-  Future<void> getDevicePushTokenVoIP() async {
+  Future getDevicePushTokenVoIP() async {
     var devicePushTokenVoIP =
         await FlutterCallkitIncoming.getDevicePushTokenVoIP();
     print(devicePushTokenVoIP);
   }
 
-  Future<void> listenerEvent(Function? callback) async {
+  Future listenerEvent(Function? callback) async {
     try {
       FlutterCallkitIncoming.onEvent.listen((event) async {
         print('HOME: $event');
@@ -254,7 +254,7 @@ class HomePageState extends State<HomePage> {
   }
 
   //check with https://webhook.site/#!/2748bc41-8599-4093-b8ad-93fd328f1cd2
-  Future<void> requestHttp(content) async {
+  Future requestHttp(content) async {
     get(Uri.parse(
         'https://webhook.site/2748bc41-8599-4093-b8ad-93fd328f1cd2?data=$content'));
   }

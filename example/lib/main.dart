@@ -11,12 +11,12 @@ import 'package:flutter_callkit_incoming_example/app_router.dart';
 import 'package:flutter_callkit_incoming_example/navigation_service.dart';
 import 'package:uuid/uuid.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
   showCallkitIncoming(Uuid().v4());
 }
 
-Future<void> showCallkitIncoming(String uuid) async {
+Future showCallkitIncoming(String uuid) async {
   final params = CallKitParams(
     id: uuid,
     nameCaller: 'Hien Nguyen',
@@ -111,7 +111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   @override
-  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+  Future didChangeAppLifecycleState(AppLifecycleState state) async {
     print(state);
     if (state == AppLifecycleState.resumed) {
       //Check call when open app from background
@@ -153,7 +153,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> getDevicePushTokenVoIP() async {
+  Future getDevicePushTokenVoIP() async {
     var devicePushTokenVoIP =
         await FlutterCallkitIncoming.getDevicePushTokenVoIP();
     print(devicePushTokenVoIP);

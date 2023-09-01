@@ -56,7 +56,7 @@ class CallingPageState extends State<CallingPage> {
   }
 
   //check with https://webhook.site/#!/2748bc41-8599-4093-b8ad-93fd328f1cd2
-  Future<void> requestHttp(content) async {
+  Future requestHttp(content) async {
     get(Uri.parse(
         'https://webhook.site/2748bc41-8599-4093-b8ad-93fd328f1cd2?data=$content'));
   }
