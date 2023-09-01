@@ -1,8 +1,10 @@
 package com.hiennv.flutter_callkit_incoming
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.AssetFileDescriptor
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -76,7 +78,7 @@ class CallkitSoundPlayerService : Service() {
     private fun playSound(intent: Intent?) {
         this.data = intent?.extras
         val sound = this.data?.getString(
-            CallkitIncomingBroadcastReceiver.EXTRA_CALLKIT_RINGTONE_PATH,
+            CallkitConstants.EXTRA_CALLKIT_RINGTONE_PATH,
             ""
         )
         var uri = sound?.let { getRingtoneUri(it) }
@@ -110,16 +112,22 @@ class CallkitSoundPlayerService : Service() {
         } else {
             mediaPlayer?.setAudioStreamType(AudioManager.STREAM_RING)
         }
-        val assetFileDescriptor =
-            applicationContext.getContentResolver().openAssetFileDescriptor(uri, "r")
-        if (assetFileDescriptor != null) {
-            mediaPlayer?.setDataSource(assetFileDescriptor)
-        } else {
-            mediaPlayer?.setDataSource(applicationContext, uri)
-        }
+        setDataSource(uri)
         mediaPlayer?.prepare()
         mediaPlayer?.isLooping = true
         mediaPlayer?.start()
+    }
+
+    private fun setDataSource(uri: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val assetFileDescriptor =
+                applicationContext.contentResolver.openAssetFileDescriptor(uri, "r")
+            if (assetFileDescriptor != null) {
+                mediaPlayer?.setDataSource(assetFileDescriptor)
+            }
+            return
+        }
+        mediaPlayer?.setDataSource(applicationContext, uri)
     }
 
     private fun getRingtoneUri(fileName: String) = try {
