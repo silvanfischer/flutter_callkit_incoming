@@ -100,7 +100,15 @@ class HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> requestNotificationPermission() async {
+    await FlutterCallkitIncoming.requestNotificationPermission({
+      "rationaleMessagePermission": "Notification permission is required, to show notification.",
+      "postNotificationMessageRequired": "Notification permission is required, Please allow notification permission from setting."
+    });
+  }
+
   Future<dynamic> initCurrentCall() async {
+    await requestNotificationPermission();
     //check current call from pushkit if possible
     var calls = await FlutterCallkitIncoming.activeCalls();
     if (calls is List) {
@@ -115,7 +123,7 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  Future makeFakeCallInComing() async {
+  Future<void> makeFakeCallInComing() async {
     await Future.delayed(const Duration(seconds: 10), () async {
       _currentUuid = _uuid.v4();
 
@@ -126,7 +134,7 @@ class HomePageState extends State<HomePage> {
         avatar: 'https://i.pravatar.cc/100',
         handle: '0123456789',
         type: 1,
-        duration: 30000,
+        duration: 10000,
         textAccept: 'Accept',
         textDecline: 'Decline',
         missedCallNotification: const NotificationParams(
@@ -144,6 +152,7 @@ class HomePageState extends State<HomePage> {
           backgroundColor: '#0955fa',
           backgroundUrl: 'assets/test.png',
           actionColor: '#4CAF50',
+          textColor: '#ffffff',
           incomingCallNotificationChannelName: 'Incoming Call',
           missedCallNotificationChannelName: 'Missed Call',
         ),
@@ -168,12 +177,12 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  Future endCurrentCall() async {
+  Future<void> endCurrentCall() async {
     initCurrentCall();
     await FlutterCallkitIncoming.endCall(_currentUuid!);
   }
 
-  Future startOutGoingCall() async {
+  Future<void> startOutGoingCall() async {
     _currentUuid = _uuid.v4();
     final params = CallKitParams(
       id: _currentUuid,
@@ -186,18 +195,17 @@ class HomePageState extends State<HomePage> {
     await FlutterCallkitIncoming.startCall(params);
   }
 
-  Future activeCalls() async {
+  Future<void> activeCalls() async {
     var calls = await FlutterCallkitIncoming.activeCalls();
     print(calls);
   }
 
-  Future endAllCalls() async {
+  Future<void> endAllCalls() async {
     await FlutterCallkitIncoming.endAllCalls();
   }
 
-  Future getDevicePushTokenVoIP() async {
-    var devicePushTokenVoIP =
-        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+  Future<void> getDevicePushTokenVoIP() async {
+    var devicePushTokenVoIP = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
     print(devicePushTokenVoIP);
   }
 
@@ -216,8 +224,7 @@ class HomePageState extends State<HomePage> {
           case Event.actionCallAccept:
             // TODO: accepted an incoming call
             // TODO: show screen calling in Flutter
-            NavigationService.instance
-                .pushNamedIfNotCurrent(AppRoute.callingPage, args: event.body);
+            NavigationService.instance.pushNamedIfNotCurrent(AppRoute.callingPage, args: event.body);
             break;
           case Event.actionCallDecline:
             // TODO: declined an incoming call
@@ -261,9 +268,8 @@ class HomePageState extends State<HomePage> {
   }
 
   //check with https://webhook.site/#!/2748bc41-8599-4093-b8ad-93fd328f1cd2
-  Future requestHttp(content) async {
-    get(Uri.parse(
-        'https://webhook.site/2748bc41-8599-4093-b8ad-93fd328f1cd2?data=$content'));
+  Future<void> requestHttp(content) async {
+    get(Uri.parse('https://webhook.site/2748bc41-8599-4093-b8ad-93fd328f1cd2?data=$content'));
   }
 
   void onEvent(CallEvent event) {

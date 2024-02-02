@@ -9,10 +9,12 @@ class AndroidParams {
     this.isCustomNotification,
     this.isCustomSmallExNotification,
     this.isShowLogo,
+    this.isShowCallID,
     this.ringtonePath,
     this.backgroundColor,
     this.backgroundUrl,
     this.actionColor,
+    this.textColor,
     this.incomingCallNotificationChannelName,
     this.missedCallNotificationChannelName,
   });
@@ -26,6 +28,9 @@ class AndroidParams {
   /// Show logo app inside full screen.
   final bool? isShowLogo;
 
+  /// Show call id app inside full screen.
+  final bool? isShowCallID;
+
   /// File name ringtone, put file into /android/app/src/main/res/raw/ringtone_default.pm3 -> value: `ringtone_default.pm3`
   final String? ringtonePath;
 
@@ -37,6 +42,9 @@ class AndroidParams {
 
   /// Color used in button/text on notification.
   final String? actionColor;
+
+  /// Color used for the text in the full screen notification
+  final String? textColor;
 
   /// Notification channel name of incoming call.
   final String? incomingCallNotificationChannelName;
