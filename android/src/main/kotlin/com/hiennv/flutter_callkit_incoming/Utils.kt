@@ -3,7 +3,7 @@ package com.hiennv.flutter_callkit_incoming
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
 
 
 class Utils {
@@ -67,5 +67,8 @@ class Utils {
             context.startActivity(intent)
         }
 
+        fun isTablet(context: Context): Boolean {
+            return context.resources.getBoolean(R.bool.isTablet)
+        }
     }
 }

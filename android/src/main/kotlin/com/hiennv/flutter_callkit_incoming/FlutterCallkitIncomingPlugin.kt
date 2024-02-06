@@ -11,7 +11,6 @@ import android.util.Log
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 
-import com.hiennv.flutter_callkit_incoming.Utils.Companion.reapCollection
 import com.hiennv.flutter_callkit_incoming.telecom.TelecomUtilities
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -28,21 +27,10 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         const val EXTRA_CALLKIT_CALL_DATA = "EXTRA_CALLKIT_CALL_DATA"
 
         @SuppressLint("StaticFieldLeak")
-        private var instance: FlutterCallkitIncomingPlugin? = null
+        lateinit var instance: FlutterCallkitIncomingPlugin
 
         @SuppressLint("StaticFieldLeak")
         private lateinit var telecomUtilities: TelecomUtilities
-
-        public fun getInstance(): FlutterCallkitIncomingPlugin {
-            if (instance == null) {
-                instance = FlutterCallkitIncomingPlugin()
-            }
-            return instance!!
-        }
-
-        public fun hasInstance(): Boolean {
-            return instance != null
-        }
 
         private val eventHandler = EventCallbackHandler()
 
@@ -54,7 +42,11 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
             @NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding,
             @Nullable handler: MethodCallHandler?
         ) {
-            initSharedInstance(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger, handler)
+            initSharedInstance(
+                flutterPluginBinding.applicationContext,
+                flutterPluginBinding.binaryMessenger,
+                handler
+            )
         }
 
         private fun initSharedInstance(
@@ -65,15 +57,13 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
             if (instance == null) {
                 instance = FlutterCallkitIncomingPlugin()
             }
-            instance!!.context = context
-            instance!!.callkitNotificationManager = CallkitNotificationManager(context)
-            instance!!.channel = MethodChannel(binaryMessenger, "flutter_callkit_incoming")
-            instance!!.channel?.setMethodCallHandler(handler ?: instance!!)
-            instance!!.events = EventChannel(binaryMessenger, "flutter_callkit_incoming_events")
-            instance!!.events?.setStreamHandler(eventHandler)
+            instance.context = context
+            instance.callkitNotificationManager = CallkitNotificationManager(context)
+            instance.channel = MethodChannel(binaryMessenger, "flutter_callkit_incoming")
+            instance.channel?.setMethodCallHandler(handler ?: instance)
+            instance.events = EventChannel(binaryMessenger, "flutter_callkit_incoming_events")
+            instance.events?.setStreamHandler(eventHandler)
         }
-        telecomUtilities = TelecomUtilities(context)
-        TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
     }
 
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -87,7 +77,11 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     private var events: EventChannel? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        this.context = flutterPluginBinding.applicationContext
+        context = flutterPluginBinding.applicationContext.apply {
+            telecomUtilities = TelecomUtilities(this)
+            TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
+        }
+
         callkitNotificationManager = CallkitNotificationManager(flutterPluginBinding.applicationContext)
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_callkit_incoming")
         channel?.setMethodCallHandler(this)
