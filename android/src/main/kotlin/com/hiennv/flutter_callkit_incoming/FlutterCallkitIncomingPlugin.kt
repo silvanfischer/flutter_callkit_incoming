@@ -27,42 +27,12 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         const val EXTRA_CALLKIT_CALL_DATA = "EXTRA_CALLKIT_CALL_DATA"
 
         @SuppressLint("StaticFieldLeak")
-        lateinit var instance: FlutterCallkitIncomingPlugin
-
-        @SuppressLint("StaticFieldLeak")
         private lateinit var telecomUtilities: TelecomUtilities
 
         private val eventHandler = EventCallbackHandler()
 
         fun sendEvent(event: String, body: Map<String, Any>) {
             eventHandler.send(event, body)
-        }
-
-        fun sharePluginWithRegister(
-            @NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding,
-            @Nullable handler: MethodCallHandler?
-        ) {
-            initSharedInstance(
-                flutterPluginBinding.applicationContext,
-                flutterPluginBinding.binaryMessenger,
-                handler
-            )
-        }
-
-        private fun initSharedInstance(
-            @NonNull context: Context,
-            @NonNull binaryMessenger: BinaryMessenger,
-            @Nullable handler: MethodCallHandler?
-        ) {
-            if (instance == null) {
-                instance = FlutterCallkitIncomingPlugin()
-            }
-            instance.context = context
-            instance.callkitNotificationManager = CallkitNotificationManager(context)
-            instance.channel = MethodChannel(binaryMessenger, "flutter_callkit_incoming")
-            instance.channel?.setMethodCallHandler(handler ?: instance)
-            instance.events = EventChannel(binaryMessenger, "flutter_callkit_incoming_events")
-            instance.events?.setStreamHandler(eventHandler)
         }
     }
 
@@ -88,58 +58,6 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         events =
             EventChannel(flutterPluginBinding.binaryMessenger, "flutter_callkit_incoming_events")
         events?.setStreamHandler(eventHandler)
-        sharePluginWithRegister(flutterPluginBinding, this)
-    }
-
-    public fun showIncomingNotification(data: Data) {
-        data.from = "notification"
-        callkitNotificationManager?.showIncomingNotification(data.toBundle())
-        //send BroadcastReceiver
-        context?.sendBroadcast(
-                CallkitIncomingBroadcastReceiver.getIntentIncoming(
-                        requireNotNull(context),
-                        data.toBundle()
-                )
-        )
-    }
-
-    public fun showMissCallNotification(data: Data) {
-        callkitNotificationManager?.showIncomingNotification(data.toBundle())
-    }
-
-    public fun startCall(data: Data) {
-        context?.sendBroadcast(
-                CallkitIncomingBroadcastReceiver.getIntentStart(
-                        requireNotNull(context),
-                        data.toBundle()
-                )
-        )
-    }
-
-    public fun endCall(data: Data) {
-        context?.sendBroadcast(
-                CallkitIncomingBroadcastReceiver.getIntentEnded(
-                        requireNotNull(context),
-                        data.toBundle()
-                )
-        )
-    }
-
-    public fun endAllCalls() {
-        val calls = getDataActiveCalls(context)
-        calls.forEach {
-            context?.sendBroadcast(
-                    CallkitIncomingBroadcastReceiver.getIntentEnded(
-                            requireNotNull(context),
-                            it.toBundle()
-                    )
-            )
-        }
-        removeAllCalls(context)
-    }
-
-    public fun sendEventCustom(event: String, body: Map<String, Any>) {
-        eventHandler.send(event, body)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -348,8 +266,8 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        instance.context = binding.activity.applicationContext
-        instance.activity = binding.activity
+        context = binding.activity.applicationContext
+        activity = binding.activity
         binding.addRequestPermissionsResultListener(this)
     }
 
@@ -357,8 +275,8 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        instance.context = binding.activity.applicationContext
-        instance.activity = binding.activity
+        context = binding.activity.applicationContext
+        activity = binding.activity
         binding.addRequestPermissionsResultListener(this)
     }
 
@@ -400,9 +318,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
-        instance.callkitNotificationManager?.onRequestPermissionsResult(instance.activity, requestCode, grantResults)
+        callkitNotificationManager?.onRequestPermissionsResult(activity, requestCode, grantResults)
         return true
     }
-
-
 }
