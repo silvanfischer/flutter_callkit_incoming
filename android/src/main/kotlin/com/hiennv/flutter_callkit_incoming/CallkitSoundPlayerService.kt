@@ -10,7 +10,6 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.*
 import android.text.TextUtils
-import android.util.Log
 
 class CallkitSoundPlayerService : Service() {
 
@@ -28,19 +27,17 @@ class CallkitSoundPlayerService : Service() {
         this.prepare()
         this.playSound(intent)
         this.playVibrator()
-        Log.d("CallkitSound", "start vibrator: $vibrator")
         return START_STICKY;
     }
 
     override fun onDestroy() {
+        super.onDestroy()
         mediaPlayer?.stop()
         mediaPlayer?.release()
-        Log.d("CallkitSound", "stop vibrator: $vibrator")
         vibrator?.cancel()
 
         mediaPlayer = null
         vibrator = null
-        super.onDestroy()
     }
 
     private fun prepare() {
