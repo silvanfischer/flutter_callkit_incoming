@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.NonNull
+import androidx.annotation.Nullable
+
 import com.hiennv.flutter_callkit_incoming.Utils.Companion.reapCollection
 import com.hiennv.flutter_callkit_incoming.telecom.TelecomUtilities
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -17,7 +19,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.*
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.lang.ref.WeakReference
 
 
 /** FlutterCallkitIncomingPlugin */
@@ -27,61 +28,52 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         const val EXTRA_CALLKIT_CALL_DATA = "EXTRA_CALLKIT_CALL_DATA"
 
         @SuppressLint("StaticFieldLeak")
-        private lateinit var instance: FlutterCallkitIncomingPlugin
+        private var instance: FlutterCallkitIncomingPlugin? = null
 
         @SuppressLint("StaticFieldLeak")
         private lateinit var telecomUtilities: TelecomUtilities
 
         public fun getInstance(): FlutterCallkitIncomingPlugin {
-            return instance
+            if (instance == null) {
+                instance = FlutterCallkitIncomingPlugin()
+            }
+            return instance!!
         }
 
         public fun hasInstance(): Boolean {
-            return ::instance.isInitialized
+            return instance != null
         }
 
-        private val methodChannels = mutableMapOf<BinaryMessenger, MethodChannel>()
-        private val eventChannels = mutableMapOf<BinaryMessenger, EventChannel>()
-        private val eventHandlers = mutableListOf<WeakReference<EventCallbackHandler>>()
+        private val eventHandler = EventCallbackHandler()
 
         fun sendEvent(event: String, body: Map<String, Any>) {
-            eventHandlers.reapCollection().forEach {
-                it.get()?.send(event, body)
-            }
+            eventHandler.send(event, body)
         }
 
-        public fun sendEventCustom(event: String, body: Map<String, Any>) {
-            eventHandlers.reapCollection().forEach {
-                it.get()?.send(event, body)
-            }
+        fun sharePluginWithRegister(
+            @NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding,
+            @Nullable handler: MethodCallHandler?
+        ) {
+            initSharedInstance(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger, handler)
         }
 
-
-        fun sharePluginWithRegister(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-            initSharedInstance(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
-        }
-
-        fun initSharedInstance(context: Context, binaryMessenger: BinaryMessenger) {
-            if (!::instance.isInitialized) {
+        private fun initSharedInstance(
+            @NonNull context: Context,
+            @NonNull binaryMessenger: BinaryMessenger,
+            @Nullable handler: MethodCallHandler?
+        ) {
+            if (instance == null) {
                 instance = FlutterCallkitIncomingPlugin()
-                instance.callkitNotificationManager = CallkitNotificationManager(context)
-                instance.context = context
             }
-
-            val channel = MethodChannel(binaryMessenger, "flutter_callkit_incoming")
-            methodChannels[binaryMessenger] = channel
-            channel.setMethodCallHandler(instance)
-
-            val events = EventChannel(binaryMessenger, "flutter_callkit_incoming_events")
-            eventChannels[binaryMessenger] = events
-            val handler = EventCallbackHandler()
-            eventHandlers.add(WeakReference(handler))
-            events.setStreamHandler(handler)
-
-            telecomUtilities = TelecomUtilities(context)
-            TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
+            instance!!.context = context
+            instance!!.callkitNotificationManager = CallkitNotificationManager(context)
+            instance!!.channel = MethodChannel(binaryMessenger, "flutter_callkit_incoming")
+            instance!!.channel?.setMethodCallHandler(handler ?: instance!!)
+            instance!!.events = EventChannel(binaryMessenger, "flutter_callkit_incoming_events")
+            instance!!.events?.setStreamHandler(eventHandler)
         }
-
+        telecomUtilities = TelecomUtilities(context)
+        TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
     }
 
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -91,9 +83,18 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     private var activity: Activity? = null
     private var context: Context? = null
     private var callkitNotificationManager: CallkitNotificationManager? = null
+    private var channel: MethodChannel? = null
+    private var events: EventChannel? = null
 
-    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        sharePluginWithRegister(flutterPluginBinding)
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        this.context = flutterPluginBinding.applicationContext
+        callkitNotificationManager = CallkitNotificationManager(flutterPluginBinding.applicationContext)
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_callkit_incoming")
+        channel?.setMethodCallHandler(this)
+        events =
+            EventChannel(flutterPluginBinding.binaryMessenger, "flutter_callkit_incoming_events")
+        events?.setStreamHandler(eventHandler)
+        sharePluginWithRegister(flutterPluginBinding, this)
     }
 
     public fun showIncomingNotification(data: Data) {
@@ -143,10 +144,8 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         removeAllCalls(context)
     }
 
-    public fun sendEventCustom(body: Map<String, Any>) {
-        eventHandlers.reapCollection().forEach {
-            it.get()?.send(CallkitConstants.ACTION_CALL_CUSTOM, body)
-        }
+    public fun sendEventCustom(event: String, body: Map<String, Any>) {
+        eventHandler.send(event, body)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -350,9 +349,8 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
     }
 
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        methodChannels.remove(binding.binaryMessenger)?.setMethodCallHandler(null)
-        eventChannels.remove(binding.binaryMessenger)?.setStreamHandler(null)
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        channel?.setMethodCallHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

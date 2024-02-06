@@ -3,8 +3,7 @@ package com.hiennv.flutter_callkit_incoming
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import com.fasterxml.jackson.databind.ObjectMapper
-import java.lang.ref.WeakReference
+import com.google.gson.Gson
 
 
 class Utils {
@@ -68,15 +67,5 @@ class Utils {
             context.startActivity(intent)
         }
 
-        fun <T, C : MutableCollection<WeakReference<T>>> C.reapCollection(): C {
-            this.removeAll {
-                it.get() == null
-            }
-            return this
-        }
-
-        fun isTablet(context: Context): Boolean {
-            return context.resources.getBoolean(R.bool.isTablet)
-        }
     }
 }
