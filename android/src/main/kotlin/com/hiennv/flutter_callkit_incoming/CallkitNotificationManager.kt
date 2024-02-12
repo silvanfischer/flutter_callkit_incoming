@@ -433,8 +433,12 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     private fun getDeclinePendingIntent(id: Int, data: Bundle): PendingIntent {
-        val declineIntent = CallkitIncomingBroadcastReceiver.getIntentDecline(context, data)
-        return PendingIntent.getBroadcast(context, id, declineIntent, getFlagPendingIntent())
+        val intentTransparent = TransparentActivity.getIntent(
+            context,
+            CallkitConstants.ACTION_CALL_DECLINE,
+            data
+        )
+        return PendingIntent.getActivity(context, id, intentTransparent, getFlagPendingIntent())
     }
 
     private fun getTimeOutPendingIntent(id: Int, data: Bundle): PendingIntent {

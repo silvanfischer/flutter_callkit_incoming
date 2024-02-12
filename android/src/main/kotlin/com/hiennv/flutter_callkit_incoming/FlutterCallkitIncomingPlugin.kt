@@ -27,7 +27,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         const val EXTRA_CALLKIT_CALL_DATA = "EXTRA_CALLKIT_CALL_DATA"
 
         @SuppressLint("StaticFieldLeak")
-        private lateinit var telecomUtilities: TelecomUtilities
+        private var telecomUtilities: TelecomUtilities? = null
 
         private val eventHandler = EventCallbackHandler()
 
@@ -48,8 +48,8 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext.apply {
-            telecomUtilities = TelecomUtilities(this)
-            TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
+            //telecomUtilities = TelecomUtilities(this)
+            //TelecomUtilities.telecomUtilitiesSingleton = telecomUtilities
         }
 
         callkitNotificationManager = CallkitNotificationManager(flutterPluginBinding.applicationContext)
@@ -76,7 +76,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
                     // only report to telecom if it's a voice call
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.reportIncomingCall(data)
+                        telecomUtilities?.reportIncomingCall(data)
                     }
 
                     result.success("OK")
@@ -88,7 +88,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
                     // we don't need to send a broadcast, we only need to report the data to telecom
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.reportIncomingCall(data)
+                        telecomUtilities?.reportIncomingCall(data)
                     }
 
                     result.success("OK")
@@ -111,7 +111,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     )
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.startCall(data)
+                        telecomUtilities?.startCall(data)
                     }
 
                     result.success("OK")
@@ -128,7 +128,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
                     val data = Data(call.arguments() ?: HashMap())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.muteCall(data)
+                        telecomUtilities?.muteCall(data)
                     }
 
                     result.success("OK")
@@ -146,9 +146,9 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     val data = Data(call.arguments() ?: HashMap())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (data.isOnHold) {
-                            telecomUtilities.holdCall(data)
+                            telecomUtilities?.holdCall(data)
                         } else {
-                            telecomUtilities.unHoldCall(data)
+                            telecomUtilities?.unHoldCall(data)
                         }
                     }
 
@@ -169,7 +169,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     )
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.endCall(data)
+                        telecomUtilities?.endCall(data)
                     }
 
                     result.success("OK")
@@ -177,7 +177,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
                 "callConnected" -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.acceptCall(Data(call.arguments() ?: HashMap()))
+                        telecomUtilities?.acceptCall(Data(call.arguments() ?: HashMap()))
                     }
 
                     result.success("OK")
@@ -206,7 +206,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
                     //Additional safety net
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.endAllActiveCalls()
+                        telecomUtilities?.endAllActiveCalls()
                     }
 
                     result.success("OK")
@@ -245,14 +245,14 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                 "endNativeSubsystemOnly" -> {
                     val data = Data(call.arguments() ?: HashMap())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        telecomUtilities.endCall(data)
+                        telecomUtilities?.endCall(data)
                     }
                 }
 
                 "setAudioRoute" -> {
                     val data = Data(call.arguments() ?: HashMap())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        telecomUtilities.setAudioRoute(data)
+                        telecomUtilities?.setAudioRoute(data)
                     }
                 }
             }
@@ -283,7 +283,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     override fun onDetachedFromActivity() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Log.d("FlutterCallkitPlugin", "onDetachedFromActivity: called -- activity destroyed? ${activity?.isDestroyed}")
-            if (activity?.isDestroyed == true) telecomUtilities.endAllActiveCalls()
+            if (activity?.isDestroyed == true) telecomUtilities?.endAllActiveCalls()
         }
     }
 
@@ -295,7 +295,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
         override fun onListen(arguments: Any?, sink: EventChannel.EventSink) {
             eventSink = sink
-            lastEvent?.let { sendEvent(it.first, it.second) }
+            lastEvent?.let { send(it.first, it.second) }
         }
 
         fun send(event: String, body: Map<String, Any>) {
@@ -307,7 +307,6 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
             Handler(Looper.getMainLooper()).post {
                 eventSink?.let {
                     it.success(data)
-                    lastEvent = null
                 }
             }
         }

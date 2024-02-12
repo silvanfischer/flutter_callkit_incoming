@@ -76,11 +76,6 @@ class CallkitIncomingActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = if (!Utils.isTablet(this@CallkitIncomingActivity)) {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }else {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setTurnScreenOn(true)
@@ -89,7 +84,6 @@ class CallkitIncomingActivity : Activity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
-            window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
         }
         transparentStatusAndNavigation()
         setContentView(R.layout.activity_callkit_incoming)
@@ -282,9 +276,11 @@ class CallkitIncomingActivity : Activity() {
 
     private fun onDeclineClick() {
         val data = intent.extras?.getBundle(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA)
-        val intent = CallkitIncomingBroadcastReceiver.getIntentDecline(this@CallkitIncomingActivity, data)
-        sendBroadcast(intent)
-        finishTask()
+        val declineIntent = TransparentActivity.getIntent(this, CallkitConstants.ACTION_CALL_DECLINE, data)
+        startActivity(declineIntent)
+
+        dismissKeyguard()
+        finish()
     }
 
     private fun finishDelayed() {
