@@ -8,7 +8,12 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.text.TextUtils
 
 class CallkitSoundPlayerService : Service() {
@@ -62,12 +67,15 @@ class CallkitSoundPlayerService : Service() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     vibrator?.vibrate(
                         VibrationEffect.createWaveform(
-                            longArrayOf(0L, 1000L, 1000L),
+                            longArrayOf(0, 1000, 500),
                             0
-                        )
+                        ), AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .build()
                     )
                 } else {
-                    vibrator?.vibrate(longArrayOf(0L, 1000L, 1000L), 0)
+                    vibrator?.vibrate(longArrayOf(0, 1000, 500), 0)
                 }
             }
         }

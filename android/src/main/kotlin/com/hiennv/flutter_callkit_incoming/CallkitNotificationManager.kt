@@ -88,7 +88,6 @@ class CallkitNotificationManager(private val context: Context) {
         notificationBuilder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_INCOMING)
         notificationBuilder.setAutoCancel(false)
         notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
-        notificationBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE)
         notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL)
         notificationBuilder.priority = NotificationCompat.PRIORITY_MAX
         notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -233,7 +232,6 @@ class CallkitNotificationManager(private val context: Context) {
                         "Missed Call"
                 ),
         )
-        val missedCallSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
         var smallIcon = context.applicationInfo.icon
         if (typeCall > 0) {
@@ -331,7 +329,7 @@ class CallkitNotificationManager(private val context: Context) {
                 notificationBuilder.addAction(callbackAction)
             }
         }
-        notificationBuilder.setSound(missedCallSound)
+        notificationBuilder.setDefaults(NotificationCompat.DEFAULT_ALL)
         notificationBuilder.setContentIntent(getAppPendingIntent(notificationId, data))
         val actionColor = data.getString(CallkitConstants.EXTRA_CALLKIT_ACTION_COLOR, "#4CAF50")
         try {
@@ -340,12 +338,6 @@ class CallkitNotificationManager(private val context: Context) {
         }
         val notification = notificationBuilder.build()
         getNotificationManager().notify(notificationId, notification)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().notify(notificationId, notification)
-            } catch (_: Exception) {
-            }
-        }, 1000)
     }
 
 
@@ -390,15 +382,7 @@ class CallkitNotificationManager(private val context: Context) {
                             NOTIFICATION_CHANNEL_ID_INCOMING,
                             incomingCallChannelName,
                             NotificationManager.IMPORTANCE_HIGH
-                    ).apply {
-                        description = ""
-                        vibrationPattern =
-                                longArrayOf(0, 1000, 500, 1000, 500)
-                        lightColor = Color.RED
-                        enableLights(true)
-                        enableVibration(true)
-                        setSound(null, null)
-                    }
+                    ).apply { setSound(null, null) }
                 }
                 channelCall.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
 
@@ -410,13 +394,7 @@ class CallkitNotificationManager(private val context: Context) {
                         NOTIFICATION_CHANNEL_ID_MISSED,
                         missedCallChannelName,
                         NotificationManager.IMPORTANCE_DEFAULT
-                ).apply {
-                    description = ""
-                    vibrationPattern = longArrayOf(0, 1000)
-                    lightColor = Color.RED
-                    enableLights(true)
-                    enableVibration(true)
-                }
+                )
                 channelMissedCall.importance = NotificationManager.IMPORTANCE_DEFAULT
                 createNotificationChannel(channelMissedCall)
             }
